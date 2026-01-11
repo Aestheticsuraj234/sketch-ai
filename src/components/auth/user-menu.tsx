@@ -39,24 +39,40 @@ session: {
 }
 }
 
-export function UserMenu({  session}: UserMenuProps) {
+export function UserMenu({ session }: UserMenuProps) {
   const navigate = useNavigate()  
   const [isPending, setIsPending] = useState(false)
   
   const logout = async () => {
+    // Prevent multi-click re-entry
+    if (isPending) {
+      return
+    }
+
     setIsPending(true)
-    await authClient.signOut({
-      fetchOptions:{
-        onSuccess: () => {
-          toast.success("Logged out successfully")
-          navigate({ to: "/login" })
-        },
-        onError: ({ error }) => {
-          toast.error(error.message)
-        },
-      }
-    })
-    setIsPending(false)
+    
+    try {
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            toast.success("Logged out successfully")
+            navigate({ to: "/login" })
+          },
+          onError: ({ error }) => {
+            toast.error(error.message || "Failed to logout. Please try again.")
+            setIsPending(false)
+          },
+        }
+      })
+    } catch (error) {
+      // Handle any exceptions that occur before callbacks
+      toast.error("Failed to logout. Please try again.")
+      setIsPending(false)
+    } finally {
+      // Ensure isPending is reset even if navigation happens
+      // Note: We don't reset here if onSuccess navigates, as component will unmount
+      // But we reset in onError and catch to handle errors
+    }
   }
 
 

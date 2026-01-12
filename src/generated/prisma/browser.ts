@@ -42,3 +42,28 @@ export type Account = Prisma.AccountModel
  * 
  */
 export type Verification = Prisma.VerificationModel
+/**
+ * Model Project
+ * 
+ */
+export type Project = Prisma.ProjectModel
+/**
+ * Model Mockup
+ * 
+ */
+export type Mockup = Prisma.MockupModel
+/**
+ * Model MockupVersion
+ * 
+ */
+export type MockupVersion = Prisma.MockupVersionModel
+/**
+ * Model Theme
+ * 
+ */
+export type Theme = Prisma.ThemeModel
+/**
+ * Model Export
+ * 
+ */
+export type Export = Prisma.ExportModel

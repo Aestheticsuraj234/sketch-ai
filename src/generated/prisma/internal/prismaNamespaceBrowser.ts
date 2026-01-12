@@ -55,7 +55,12 @@ export const ModelName = {
   User: 'User',
   Session: 'Session',
   Account: 'Account',
-  Verification: 'Verification'
+  Verification: 'Verification',
+  Project: 'Project',
+  Mockup: 'Mockup',
+  MockupVersion: 'MockupVersion',
+  Theme: 'Theme',
+  Export: 'Export'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -141,12 +146,95 @@ export const VerificationScalarFieldEnum = {
 export type VerificationScalarFieldEnum = (typeof VerificationScalarFieldEnum)[keyof typeof VerificationScalarFieldEnum]
 
 
+export const ProjectScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  userId: 'userId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
+
+
+export const MockupScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  prompt: 'prompt',
+  code: 'code',
+  deviceType: 'deviceType',
+  uiLibrary: 'uiLibrary',
+  status: 'status',
+  projectId: 'projectId',
+  themeId: 'themeId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MockupScalarFieldEnum = (typeof MockupScalarFieldEnum)[keyof typeof MockupScalarFieldEnum]
+
+
+export const MockupVersionScalarFieldEnum = {
+  id: 'id',
+  version: 'version',
+  code: 'code',
+  prompt: 'prompt',
+  mockupId: 'mockupId',
+  createdAt: 'createdAt'
+} as const
+
+export type MockupVersionScalarFieldEnum = (typeof MockupVersionScalarFieldEnum)[keyof typeof MockupVersionScalarFieldEnum]
+
+
+export const ThemeScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  isPreset: 'isPreset',
+  primaryColor: 'primaryColor',
+  secondaryColor: 'secondaryColor',
+  accentColor: 'accentColor',
+  backgroundColor: 'backgroundColor',
+  foregroundColor: 'foregroundColor',
+  borderRadius: 'borderRadius',
+  fontFamily: 'fontFamily',
+  customCSS: 'customCSS',
+  projectId: 'projectId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ThemeScalarFieldEnum = (typeof ThemeScalarFieldEnum)[keyof typeof ThemeScalarFieldEnum]
+
+
+export const ExportScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  format: 'format',
+  url: 'url',
+  figmaUrl: 'figmaUrl',
+  metadata: 'metadata',
+  mockupId: 'mockupId',
+  createdAt: 'createdAt'
+} as const
+
+export type ExportScalarFieldEnum = (typeof ExportScalarFieldEnum)[keyof typeof ExportScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: 'DbNull',
+  JsonNull: 'JsonNull'
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -163,4 +251,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: 'DbNull',
+  JsonNull: 'JsonNull',
+  AnyNull: 'AnyNull'
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

@@ -3,7 +3,9 @@ import { UserMenu } from './auth/user-menu'
 import { LoginButton } from './auth/login-button'
 import { ThemeToggle } from './theme-toggle'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
 import { authClient } from '@/lib/auth-client'
+import { Crown } from 'lucide-react'
 
 const Header = () => {
   const { data, isPending } = authClient.useSession()
@@ -18,6 +20,18 @@ const Header = () => {
         </Link>
         
         <div className="flex items-center gap-3">
+          {data && (
+            <Link to="/upgrade">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10"
+              >
+                <Crown className="w-4 h-4 mr-1.5" />
+                Upgrade
+              </Button>
+            </Link>
+          )}
           <ThemeToggle />
           {isPending ? (
             <div className="flex items-center gap-2">

@@ -10,6 +10,15 @@ export const Route = createFileRoute('/api/auth/$')({
       POST: ({ request }) => {
         return auth.handler(request)
       },
+      PUT: ({ request }) => {
+        return auth.handler(request)
+      },
+      PATCH: ({ request }) => {
+        return auth.handler(request)
+      },
+      DELETE: ({ request }) => {
+        return auth.handler(request)
+      },
     },
   },
 })

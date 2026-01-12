@@ -6,6 +6,7 @@ import { Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
+
 export const Route = createFileRoute("/playground/$playgroundId")({
   component: PlaygroundPage,
 });
@@ -171,19 +172,19 @@ function PlaygroundPage() {
   const canvasVariations: Variation[] =
     mockup.variations?.length > 0
       ? mockup.variations.map((v) => ({
-          id: v.id,
-          code: v.code,
-          label: `V${v.version}`,
-          version: v.version,
-        }))
+        id: v.id,
+        code: v.code,
+        label: `V${v.version}`,
+        version: v.version,
+      }))
       : [
-          {
-            id: "default",
-            code: mockup.code,
-            label: "V1",
-            version: 1,
-          },
-        ];
+        {
+          id: "default",
+          code: mockup.code,
+          label: "V1",
+          version: 1,
+        },
+      ];
 
   return (
     <Canvas

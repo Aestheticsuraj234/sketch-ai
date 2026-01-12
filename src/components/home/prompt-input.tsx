@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
-import { useQueryClient } from '@tanstack/react-query'
+import { Link, useNavigate } from '@tanstack/react-router'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { 
   Plus, 
   ChevronDown, 
@@ -13,7 +13,9 @@ import {
   Check,
   Loader2,
   Sparkles,
-  Zap
+  Zap,
+  Crown,
+  AlertCircle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -28,6 +30,7 @@ import { cn } from '@/lib/utils'
 import { createMockup } from '@/server/mockup'
 import { toast } from 'sonner'
 import { mockupsQueryKey } from './mockup-list'
+import { getUserCredits, FREE_TIER_CREDITS } from '@/server/credits'
 
 // Types matching Prisma enums
 export type DeviceType = 'DESKTOP' | 'MOBILE' | 'TABLET' | 'BOTH'
@@ -98,12 +101,34 @@ export function PromptInput() {
   const [aiModel, setAIModel] = useState<AIModel>('sketch-mini')
   const [isLoading, setIsLoading] = useState(false)
 
+  // Fetch user credits
+  const { data: credits } = useQuery({
+    queryKey: ["user-credits"],
+    queryFn: () => getUserCredits(),
+  })
+
+  const isPro = credits?.plan === "pro"
+  const canGenerate = credits?.canGenerate ?? true
+  const creditsRemaining = credits?.creditsRemaining ?? FREE_TIER_CREDITS
+
   const selectedDevice = deviceOptions.find(d => d.id === deviceType)!
   const selectedLibrary = uiLibraryOptions.find(l => l.id === uiLibrary)!
   const selectedModel = aiModelOptions.find(m => m.id === aiModel)!
 
   const handleSubmit = async () => {
     if (!prompt.trim() || isLoading) return
+
+    // Check if user can generate
+    if (!canGenerate) {
+      toast.error("You've reached your generation limit", {
+        description: "Upgrade to Pro for unlimited generations!",
+        action: {
+          label: "Upgrade",
+          onClick: () => navigate({ to: "/upgrade" }),
+        },
+      })
+      return
+    }
     
     setIsLoading(true)
     
@@ -118,8 +143,9 @@ export function PromptInput() {
       })
 
       if (result.success && result.mockupId) {
-        // Invalidate the mockups cache so the list refreshes
+        // Invalidate the mockups cache and credits so they refresh
         await queryClient.invalidateQueries({ queryKey: mockupsQueryKey })
+        await queryClient.invalidateQueries({ queryKey: ["user-credits"] })
         
         toast.success('Mockup creation started!', {
           description: 'Redirecting to your playground...',
@@ -131,9 +157,20 @@ export function PromptInput() {
           params: { playgroundId: result.mockupId },
         })
       } else {
-        toast.error('Failed to create mockup', {
-          description: result.error || 'An unexpected error occurred',
-        })
+        // Check if error is about rate limiting
+        if (result.error?.includes("generation limit") || result.error?.includes("Upgrade to Pro")) {
+          toast.error("Generation limit reached", {
+            description: result.error,
+            action: {
+              label: "Upgrade",
+              onClick: () => navigate({ to: "/upgrade" }),
+            },
+          })
+        } else {
+          toast.error('Failed to create mockup', {
+            description: result.error || 'An unexpected error occurred',
+          })
+        }
       }
     } catch (error) {
       console.error('Error creating mockup:', error)
@@ -154,6 +191,49 @@ export function PromptInput() {
 
   return (
     <div className="w-full max-w-2xl">
+      {/* Credits Warning Banner */}
+      {credits && !isPro && (
+        <div className={cn(
+          "mb-3 flex items-center justify-between px-4 py-2.5 rounded-lg border text-sm",
+          !canGenerate 
+            ? "bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400"
+            : creditsRemaining <= 2
+            ? "bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400"
+            : "bg-zinc-100/80 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400"
+        )}>
+          <div className="flex items-center gap-2">
+            {!canGenerate ? (
+              <AlertCircle className="w-4 h-4" />
+            ) : (
+              <Zap className="w-4 h-4" />
+            )}
+            <span>
+              {!canGenerate 
+                ? "You've used all your free generations this month" 
+                : `${creditsRemaining} generation${creditsRemaining === 1 ? '' : 's'} remaining this month`
+              }
+            </span>
+          </div>
+          <Link to="/upgrade">
+            <Button size="sm" variant={!canGenerate ? "default" : "ghost"} className={cn(
+              "h-7 text-xs",
+              !canGenerate && "bg-red-500 hover:bg-red-600 text-white"
+            )}>
+              <Crown className="w-3 h-3 mr-1" />
+              {!canGenerate ? "Upgrade Now" : "Get Pro"}
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      {/* Pro Badge */}
+      {isPro && (
+        <div className="mb-3 flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-600 dark:text-emerald-400">
+          <Sparkles className="w-4 h-4" />
+          <span>Pro member — Unlimited generations</span>
+        </div>
+      )}
+
       <div className="relative rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm transition-all focus-within:border-zinc-300 dark:focus-within:border-zinc-700 focus-within:ring-1 focus-within:ring-zinc-300/50 dark:focus-within:ring-zinc-700/50 shadow-sm dark:shadow-none">
         {/* Textarea */}
         <textarea

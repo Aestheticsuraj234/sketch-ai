@@ -3,12 +3,23 @@ import { Link } from "@tanstack/react-router"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { useTheme } from "@/providers/theme-provider"
+import { useQuery } from "@tanstack/react-query"
+import { getUserCredits } from "@/server/credits"
 
 interface CanvasHeaderProps {
   title: string
 }
 
 export function CanvasHeader({ title }: CanvasHeaderProps) {
+  const { data: credits } = useQuery({
+    queryKey: ["userCredits"],
+    queryFn: getUserCredits,
+  })
+
+
+
+  const isPro = credits?.plan === "pro"
+
   const { theme, setTheme } = useTheme()
 
   const toggleTheme = () => {
@@ -80,21 +91,26 @@ export function CanvasHeader({ title }: CanvasHeaderProps) {
         </Tooltip>
 
         {/* Upgrade to Pro */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-background/80 backdrop-blur-sm shadow-lg border-border/50 hover:bg-background gap-1.5"
-            >
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span className="hidden sm:inline">Upgrade to Pro</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">
-            <p>Unlock premium features</p>
-          </TooltipContent>
-        </Tooltip>
+        {!isPro && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-background/80 backdrop-blur-sm shadow-lg border-border/50 hover:bg-background gap-1.5"
+                asChild
+              >
+                <Link to="/upgrade">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <span className="hidden sm:inline">Upgrade to Pro</span>
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              <p>Unlock premium features</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
 
         {/* Export */}
         <Tooltip>

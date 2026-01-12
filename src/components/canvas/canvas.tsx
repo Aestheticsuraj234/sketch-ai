@@ -189,17 +189,17 @@ export function Canvas({
 
   // Toolbar handlers
   const handleEdit = () => setEditOpen(true)
-  
+
   const handlePreview = (device: DeviceSize) => {
     setPreviewDevice(device)
     setPreviewOpen(true)
   }
-  
+
   const handleViewCode = () => setCodeOpen(true)
-  
+
   const handleExport = () => {
     if (!selectedNode) return
-    
+
     // Create and download HTML file
     const fullHtml = `<!DOCTYPE html>
 <html lang="en">
@@ -214,7 +214,7 @@ export function Canvas({
 ${selectedNode.html}
 </body>
 </html>`
-    
+
     const blob = new Blob([fullHtml], { type: "text/html" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
@@ -227,7 +227,7 @@ ${selectedNode.html}
   // Handle AI edit submission
   const handleEditSubmit = async (prompt: string) => {
     if (!selectedNode) return
-    
+
     // If we have a mockupId, use the real API
     if (mockupId) {
       try {
@@ -244,7 +244,7 @@ ${selectedNode.html}
           toast.success("Edit started!", {
             description: "Your changes are being processed. The mockup will update automatically.",
           })
-          
+
           // Call the callback to trigger a refetch
           if (onEditComplete) {
             onEditComplete()
@@ -266,7 +266,7 @@ ${selectedNode.html}
       toast.info("Demo Mode", {
         description: "In production, this would trigger an AI edit.",
       })
-      
+
       if (onVariationUpdate) {
         // This would be called with the new code from AI
         // onVariationUpdate(selectedNode.id, newCode)
@@ -335,14 +335,14 @@ ${selectedNode.html}
             html={selectedNode.html}
             initialDevice={previewDevice}
           />
-          
+
           <CodeModal
             open={codeOpen}
             onOpenChange={setCodeOpen}
             html={selectedNode.html}
             title={`Code - ${selectedNode.label}`}
           />
-          
+
           <EditModal
             open={editOpen}
             onOpenChange={setEditOpen}

@@ -26,6 +26,14 @@ model User {
   accounts      Account[]
   projects      Project[]
 
+  // Subscription & Credits
+  plan              String    @default("free") // "free" or "pro"
+  creditsUsed       Int       @default(0)
+  creditsResetAt    DateTime  @default(now())
+  polarCustomerId   String?
+  subscriptionId    String?
+  subscriptionStatus String?  // "active", "canceled", "past_due", etc.
+
   @@unique([email])
   @@map("user")
 }

@@ -44,17 +44,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           <QueryClientProvider>
             {children}
             <Toaster closeButton position='top-center' />
-            <TanStackDevtools
-              config={{
-                position: 'bottom-right',
-              }}
-              plugins={[
-                {
-                  name: 'Tanstack Router',
-                  render: <TanStackRouterDevtoolsPanel />,
-                },
-              ]}
-            />
+
           </QueryClientProvider>
         </ThemeProvider>
         <Scripts />

@@ -3,6 +3,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { prisma } from "@/db";
 import { inngest } from "@/inngest";
 import { auth } from "@/lib/auth";
+import { canUserGenerate, incrementCreditsUsed } from "./credits";
 
 
 export type DeviceType = "DESKTOP" | "MOBILE" | "TABLET" | "BOTH";
@@ -64,6 +65,16 @@ export const createMockup = createServerFn({ method: "POST" })
       }
 
       const userId = session.user.id;
+
+      // Check if user can generate (rate limiting)
+      const { canGenerate, reason } = await canUserGenerate();
+      if (!canGenerate) {
+        return {
+          success: false,
+          error: reason || "You've reached your generation limit. Please upgrade to Pro for unlimited generations.",
+        };
+      }
+
       const { prompt, deviceType, uiLibrary, aiModel, projectName } = data;
 
       // Create a new project for this mockup
@@ -101,6 +112,9 @@ export const createMockup = createServerFn({ method: "POST" })
           aiModel,
         },
       });
+
+      // Increment credits used for free users
+      await incrementCreditsUsed();
 
       return {
         success: true,
@@ -286,6 +300,15 @@ export const editVariation = createServerFn({ method: "POST" })
         };
       }
 
+      // Check if user can generate (rate limiting)
+      const { canGenerate, reason } = await canUserGenerate();
+      if (!canGenerate) {
+        return {
+          success: false,
+          error: reason || "You've reached your generation limit. Please upgrade to Pro for unlimited generations.",
+        };
+      }
+
       const { versionId, mockupId, editPrompt, aiModel } = data;
 
       // Verify the user owns this mockup
@@ -329,6 +352,9 @@ export const editVariation = createServerFn({ method: "POST" })
           aiModel,
         },
       });
+
+      // Increment credits used for free users
+      await incrementCreditsUsed();
 
       return {
         success: true,

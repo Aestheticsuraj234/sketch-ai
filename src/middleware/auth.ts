@@ -16,14 +16,14 @@ export const authFnMiddleware = createMiddleware({ type: 'function' }).server(
   },
 )
 
-export const authMiddleware = createMiddleware({type:"request"}).server(async({request , next})=>{
+export const authMiddleware = createMiddleware({ type: "request" }).server(async ({ request, next }) => {
   const url = new URL(request.url);
 
-  // Skip authentication for login page, auth API routes, and Inngest
-  if(url.pathname.startsWith("/login") || url.pathname.startsWith('/api/auth') || url.pathname.startsWith('/api/inngest')){
+
+  if (url.pathname.startsWith("/login") || url.pathname.startsWith('/api/auth') || url.pathname.startsWith('/api/inngest') || url.pathname.startsWith('/api/auth/polar/webhooks')) {
     return next()
   }
-  
+
   const headers = getRequestHeaders()
   const session = await auth.api.getSession({ headers })
 

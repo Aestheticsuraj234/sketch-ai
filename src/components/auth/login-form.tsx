@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { authClient } from "@/lib/auth-client"
-import { useMutation } from "@tanstack/react-query"
+
 import { useNavigate } from "@tanstack/react-router"
 
 import React, { useState } from "react"
@@ -12,12 +12,13 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
 
   const handleLogin = async () => {
     // Prevent multi-click re-entry
+    console.log("handleLogin")
     if (isSubmitting) {
       return
     }
 
     setIsSubmitting(true)
-    
+
     try {
       await authClient.signIn.social({
         provider: "github",

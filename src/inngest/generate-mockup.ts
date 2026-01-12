@@ -1,14 +1,18 @@
 import { inngest } from "./client";
 import { prisma } from "@/db";
+import { generateUIVariations } from "@/lib/ai";
 
 export const generateMockup = inngest.createFunction(
   { 
     id: "generate-mockup",
-    retries: 3,
+    retries: 2,
+    concurrency: {
+      limit: 5,
+    },
   },
   { event: "mockup/generation.requested" },
   async ({ event, step }) => {
-    const { mockupId, prompt, deviceType, uiLibrary } = event.data;
+    const { mockupId, prompt, deviceType, uiLibrary, aiModel } = event.data;
 
     // Step 1: Update mockup status to GENERATING
     await step.run("update-status-generating", async () => {
@@ -18,56 +22,71 @@ export const generateMockup = inngest.createFunction(
       });
     });
 
-    // Step 2: Generate the UI code using AI
-    // TODO: Implement actual AI generation with AI SDK + Open Router
-    const generatedCode = await step.run("generate-ui-code", async () => {
-      // Placeholder - will be replaced with actual AI generation
-      const placeholderCode = `
-// Generated UI Component
-// Prompt: ${prompt}
-// Device: ${deviceType}
-// Library: ${uiLibrary}
-
-export default function GeneratedComponent() {
-  return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold">Generated UI</h1>
-      <p className="text-muted-foreground">
-        This is a placeholder. AI generation will be implemented soon.
-      </p>
-    </div>
-  );
-}
-`.trim();
+    // Step 2: Generate 3 UI variations using AI
+    const generationResult = await step.run("generate-ui-variations", async () => {
+      const result = await generateUIVariations({
+        prompt,
+        deviceType,
+        uiLibrary,
+        model: aiModel,
+      });
       
-      return placeholderCode;
+      return result;
     });
 
-    // Step 3: Save the generated code and update status
-    await step.run("save-generated-code", async () => {
+    // Handle generation failure
+    if (!generationResult.success || !generationResult.variations?.length) {
+      await step.run("update-status-failed", async () => {
+        await prisma.mockup.update({
+          where: { id: mockupId },
+          data: { 
+            status: "FAILED",
+            code: `// Generation failed: ${generationResult.error || "No variations generated"}`,
+          },
+        });
+      });
+
+      return {
+        success: false,
+        mockupId,
+        error: generationResult.error || "No variations generated",
+      };
+    }
+
+    // Step 3: Save all variations
+    await step.run("save-variations", async () => {
+      const variations = generationResult.variations!;
+      
+      // Use the first variation as the main mockup code
       await prisma.mockup.update({
         where: { id: mockupId },
         data: {
-          code: generatedCode,
+          code: variations[0].code,
           status: "COMPLETED",
         },
       });
 
-      // Create initial version
-      await prisma.mockupVersion.create({
-        data: {
-          mockupId,
-          version: 1,
-          code: generatedCode,
-          prompt,
-        },
-      });
+      // Create MockupVersion entries for each variation
+      const versionPromises = variations.map((variation, index) => 
+        prisma.mockupVersion.create({
+          data: {
+            mockupId,
+            version: index + 1,
+            code: variation.code,
+            prompt: index === 0 ? prompt : `${prompt} (${variation.label})`,
+          },
+        })
+      );
+
+      await Promise.all(versionPromises);
     });
 
     return {
       success: true,
       mockupId,
-      message: "Mockup generated successfully",
+      variationsCount: generationResult.variations!.length,
+      tokensUsed: generationResult.tokensUsed,
+      message: `Generated ${generationResult.variations!.length} variations successfully`,
     };
   }
 );

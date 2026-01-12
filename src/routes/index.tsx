@@ -1,5 +1,5 @@
 import Header from '@/components/Header'
-import { PromptInput, BackgroundPattern, LoginPrompt, MockupList } from '@/components/home'
+import { PromptInput, BackgroundPattern, LoginPrompt, MockupList, QuickActions } from '@/components/home'
 import { authClient } from '@/lib/auth-client'
 
 import { createFileRoute } from '@tanstack/react-router'
@@ -27,7 +27,12 @@ function RouteComponent() {
         {isPending ? (
           <PromptInputSkeleton />
         ) : isAuthenticated ? (
-          <PromptInput />
+          <>
+            <PromptInput />
+            <div className="mt-6">
+              <QuickActions />
+            </div>
+          </>
         ) : (
           <LoginPrompt />
         )}

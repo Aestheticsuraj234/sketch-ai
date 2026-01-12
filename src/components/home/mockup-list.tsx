@@ -13,9 +13,8 @@ export function MockupList() {
   const { data: mockups = [], isLoading, isFetching } = useQuery({
     queryKey: mockupsQueryKey,
     queryFn: () => getUserMockups(),
-    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
-    refetchOnWindowFocus: true, // Refetch when user comes back to tab
-    // Smart polling: only poll if there are pending or generating mockups
+    staleTime: 1000 * 60 * 5, 
+    refetchOnWindowFocus: true, 
     refetchInterval: (query) => {
       const data = query.state.data
       if (!data) return false

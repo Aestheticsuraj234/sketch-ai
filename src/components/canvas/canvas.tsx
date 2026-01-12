@@ -1,0 +1,357 @@
+import { useMemo, useState, useCallback } from "react"
+import {
+  ReactFlow,
+  Background,
+  Controls,
+  useNodesState,
+  type Node,
+  type OnSelectionChangeParams,
+  BackgroundVariant,
+} from "@xyflow/react"
+import "@xyflow/react/dist/style.css"
+import { toast } from "sonner"
+
+import { CanvasHeader } from "./canvas-header"
+import { MockupNode } from "./mockup-node"
+import { SelectionToolbar, type DeviceSize } from "./selection-toolbar"
+import { PreviewModal } from "./preview-modal"
+import { CodeModal } from "./code-modal"
+import { EditModal } from "./edit-modal"
+import { cn } from "@/lib/utils"
+import { editVariation } from "@/server/mockup"
+import type { DeviceType } from "@/server/mockup"
+
+// Variation type - represents a generated UI design variation
+export type Variation = {
+  id: string
+  code: string
+  label: string
+  version?: number
+}
+
+interface CanvasProps {
+  title?: string
+  mockupId?: string
+  deviceType?: DeviceType
+  variations?: Variation[]
+  className?: string
+  onVariationUpdate?: (id: string, newCode: string) => void
+  onEditComplete?: () => void
+}
+
+// Register custom node types
+const nodeTypes = {
+  mockup: MockupNode,
+}
+
+// Variation labels
+const VARIATION_LABELS = [
+  "Design A - Modern & Bold",
+  "Design B - Dark & Sleek",
+  "Design C - Minimalist",
+]
+
+// Frame dimensions based on device type
+const DEVICE_DIMENSIONS: Record<DeviceType, { width: number; height: number }> = {
+  MOBILE: { width: 390, height: 844 },
+  TABLET: { width: 768, height: 1024 },
+  DESKTOP: { width: 1440, height: 900 },
+  BOTH: { width: 1440, height: 900 },
+}
+
+// Sample mockup for testing
+const SAMPLE_MOCKUP = `
+<div class="min-h-screen bg-zinc-950 text-zinc-50 font-sans">
+  <nav class="sticky top-0 z-50 border-b border-zinc-800 bg-zinc-950/95 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl font-bold tracking-tight">Sketch AI</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <button class="px-4 py-2 text-sm font-medium rounded-md border border-zinc-700">Sign In</button>
+        <button class="px-4 py-2 text-sm font-medium rounded-md bg-emerald-500 text-zinc-950">Get Started</button>
+      </div>
+    </div>
+  </nav>
+  <section class="py-24 px-6">
+    <div class="max-w-4xl mx-auto text-center space-y-6">
+      <h1 class="text-5xl font-bold tracking-tight">Build Beautiful UIs with AI</h1>
+      <p class="text-xl text-zinc-400 max-w-2xl mx-auto">Generate stunning mockups in seconds.</p>
+      <div class="flex justify-center gap-4 pt-4">
+        <button class="px-6 py-3 rounded-md bg-emerald-500 text-zinc-950 font-semibold">Start Creating</button>
+        <button class="px-6 py-3 rounded-md bg-zinc-800 text-white font-semibold border border-zinc-700">View Examples</button>
+      </div>
+    </div>
+  </section>
+</div>
+`
+
+// Frame gap between variations
+const FRAME_GAP = 120
+
+export function Canvas({
+  title = "Untitled Mockup",
+  mockupId,
+  deviceType = "DESKTOP",
+  variations = [],
+  className,
+  onVariationUpdate,
+  onEditComplete,
+}: CanvasProps) {
+  // Get frame dimensions based on device type
+  const { width: FRAME_WIDTH, height: FRAME_HEIGHT } = DEVICE_DIMENSIONS[deviceType]
+
+  // Selected node state
+  const [selectedNode, setSelectedNode] = useState<{
+    id: string
+    label: string
+    html: string
+    version?: number
+  } | null>(null)
+
+  // Modal states
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewDevice, setPreviewDevice] = useState<DeviceSize>(
+    deviceType === "MOBILE" ? "mobile" : deviceType === "TABLET" ? "tablet" : "desktop"
+  )
+  const [codeOpen, setCodeOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+
+  // Use provided variations or sample
+  const allVariations: Variation[] = useMemo(
+    () =>
+      variations.length > 0
+        ? variations
+        : [{ id: "sample", code: SAMPLE_MOCKUP, label: "Sample" }],
+    [variations]
+  )
+
+  // Convert variations to React Flow nodes
+  const initialNodes: Node[] = useMemo(() => {
+    return allVariations.map((variation, index) => ({
+      id: variation.id,
+      type: "mockup",
+      position: {
+        x: index * (FRAME_WIDTH + FRAME_GAP),
+        y: 0,
+      },
+      data: {
+        label: VARIATION_LABELS[index] || variation.label || `Variation ${index + 1}`,
+        html: variation.code,
+        width: FRAME_WIDTH,
+        height: FRAME_HEIGHT,
+        version: variation.version || index + 1,
+      },
+      selectable: true,
+      draggable: true, // Enable dragging
+    }))
+  }, [allVariations, FRAME_WIDTH, FRAME_HEIGHT])
+
+  const [nodes, , onNodesChange] = useNodesState(initialNodes)
+
+  // Handle selection change
+  const onSelectionChange = useCallback(({ nodes: selectedNodes }: OnSelectionChangeParams) => {
+    if (selectedNodes.length === 1) {
+      const node = selectedNodes[0]
+      setSelectedNode({
+        id: node.id,
+        label: node.data.label as string,
+        html: node.data.html as string,
+        version: node.data.version as number | undefined,
+      })
+    } else {
+      setSelectedNode(null)
+    }
+  }, [])
+
+  // Calculate initial viewport based on device type
+  const defaultViewport = useMemo(() => {
+    const totalWidth = allVariations.length * (FRAME_WIDTH + FRAME_GAP) - FRAME_GAP
+    const centerX = totalWidth / 2
+    const centerY = FRAME_HEIGHT / 2 + 40
+
+    // Adjust zoom based on device type and number of variations
+    let zoom: number
+    if (deviceType === "MOBILE") {
+      zoom = allVariations.length === 1 ? 0.7 : allVariations.length === 2 ? 0.5 : 0.4
+    } else if (deviceType === "TABLET") {
+      zoom = allVariations.length === 1 ? 0.5 : allVariations.length === 2 ? 0.35 : 0.25
+    } else {
+      zoom = allVariations.length === 1 ? 0.35 : allVariations.length === 2 ? 0.25 : 0.18
+    }
+
+    return {
+      x: window.innerWidth / 2 - centerX * zoom,
+      y: window.innerHeight / 2 - centerY * zoom,
+      zoom,
+    }
+  }, [allVariations.length, FRAME_WIDTH, FRAME_HEIGHT, deviceType])
+
+  // Toolbar handlers
+  const handleEdit = () => setEditOpen(true)
+  
+  const handlePreview = (device: DeviceSize) => {
+    setPreviewDevice(device)
+    setPreviewOpen(true)
+  }
+  
+  const handleViewCode = () => setCodeOpen(true)
+  
+  const handleExport = () => {
+    if (!selectedNode) return
+    
+    // Create and download HTML file
+    const fullHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${selectedNode.label}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+${selectedNode.html}
+</body>
+</html>`
+    
+    const blob = new Blob([fullHtml], { type: "text/html" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `${selectedNode.label.toLowerCase().replace(/\s+/g, "-")}.html`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  // Handle AI edit submission
+  const handleEditSubmit = async (prompt: string) => {
+    if (!selectedNode) return
+    
+    // If we have a mockupId, use the real API
+    if (mockupId) {
+      try {
+        const result = await editVariation({
+          data: {
+            versionId: selectedNode.id,
+            mockupId: mockupId,
+            editPrompt: prompt,
+            aiModel: "sketch-pro", // Could be made configurable
+          },
+        })
+
+        if (result.success) {
+          toast.success("Edit started!", {
+            description: "Your changes are being processed. The mockup will update automatically.",
+          })
+          
+          // Call the callback to trigger a refetch
+          if (onEditComplete) {
+            onEditComplete()
+          }
+        } else {
+          toast.error("Failed to start edit", {
+            description: result.error || "Please try again.",
+          })
+        }
+      } catch (error) {
+        console.error("Edit error:", error)
+        toast.error("Failed to start edit", {
+          description: "An unexpected error occurred. Please try again.",
+        })
+      }
+    } else {
+      // Demo mode - just log
+      console.log("Edit variant (demo):", selectedNode.id, "with prompt:", prompt)
+      toast.info("Demo Mode", {
+        description: "In production, this would trigger an AI edit.",
+      })
+      
+      if (onVariationUpdate) {
+        // This would be called with the new code from AI
+        // onVariationUpdate(selectedNode.id, newCode)
+      }
+    }
+  }
+
+  return (
+    <div className={cn("relative h-screen w-screen", className)}>
+      {/* Header */}
+      <CanvasHeader title={title} />
+
+      {/* Selection Toolbar - shows when a node is selected */}
+      {selectedNode && (
+        <SelectionToolbar
+          onEdit={handleEdit}
+          onPreview={handlePreview}
+          onViewCode={handleViewCode}
+          onExport={handleExport}
+        />
+      )}
+
+      {/* React Flow Canvas */}
+      <ReactFlow
+        nodes={nodes}
+        edges={[]}
+        onNodesChange={onNodesChange}
+        onSelectionChange={onSelectionChange}
+        nodeTypes={nodeTypes}
+        defaultViewport={defaultViewport}
+        minZoom={0.02}
+        maxZoom={2}
+        panOnDrag
+        zoomOnScroll
+        zoomOnPinch
+        panOnScroll={false}
+        selectionOnDrag={false}
+        selectNodesOnDrag={false}
+        nodesDraggable={true}
+        nodesConnectable={false}
+        fitView={false}
+        proOptions={{ hideAttribution: true }}
+        className="bg-zinc-100! dark:bg-zinc-950!"
+      >
+        {/* Dotted Background */}
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={24}
+          size={1}
+          color="rgb(161 161 170 / 0.4)"
+        />
+
+        {/* Zoom Controls */}
+        <Controls
+          showInteractive={false}
+          className="bg-background/90! backdrop-blur-md! shadow-lg! border! border-border/50! rounded-xl! overflow-hidden!"
+        />
+      </ReactFlow>
+
+      {/* Modals */}
+      {selectedNode && (
+        <>
+          <PreviewModal
+            open={previewOpen}
+            onOpenChange={setPreviewOpen}
+            html={selectedNode.html}
+            initialDevice={previewDevice}
+          />
+          
+          <CodeModal
+            open={codeOpen}
+            onOpenChange={setCodeOpen}
+            html={selectedNode.html}
+            title={`Code - ${selectedNode.label}`}
+          />
+          
+          <EditModal
+            open={editOpen}
+            onOpenChange={setEditOpen}
+            currentHtml={selectedNode.html}
+            variantLabel={selectedNode.label}
+            onSubmit={handleEditSubmit}
+          />
+        </>
+      )}
+    </div>
+  )
+}

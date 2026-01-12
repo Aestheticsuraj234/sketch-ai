@@ -18,9 +18,22 @@ type MockupGenerationRequested = {
     prompt: string;
     deviceType: "DESKTOP" | "MOBILE" | "TABLET" | "BOTH";
     uiLibrary: "SHADCN" | "MATERIAL_UI" | "ANT_DESIGN" | "ACETERNITY";
+    aiModel: "sketch-mini" | "sketch-pro";
+  };
+};
+
+// Variation edit event
+type VariationEditRequested = {
+  name: "mockup/variation.edit.requested";
+  data: {
+    versionId: string;
+    mockupId: string;
+    currentHtml: string;
+    editPrompt: string;
+    aiModel: "sketch-mini" | "sketch-pro";
   };
 };
 
 export const schemas = new EventSchemas().fromUnion<
-  DemoEventSent | MockupGenerationRequested
+  DemoEventSent | MockupGenerationRequested | VariationEditRequested
 >();

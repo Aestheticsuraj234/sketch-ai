@@ -11,7 +11,9 @@ import {
   LayoutGrid,
   Palette,
   Check,
-  Loader2
+  Loader2,
+  Sparkles,
+  Zap
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -30,11 +32,13 @@ import { mockupsQueryKey } from './mockup-list'
 // Types matching Prisma enums
 export type DeviceType = 'DESKTOP' | 'MOBILE' | 'TABLET' | 'BOTH'
 export type UILibrary = 'SHADCN' | 'MATERIAL_UI' | 'ANT_DESIGN' | 'ACETERNITY'
+export type AIModel = 'sketch-mini' | 'sketch-pro'
 
 export type PromptInputData = {
   prompt: string
   deviceType: DeviceType
   uiLibrary: UILibrary
+  aiModel: AIModel
 }
 
 type DeviceOption = {
@@ -47,6 +51,13 @@ type UILibraryOption = {
   id: UILibrary
   name: string
   description: string
+}
+
+type AIModelOption = {
+  id: AIModel
+  name: string
+  description: string
+  icon: React.ReactNode
 }
 
 const deviceOptions: DeviceOption[] = [
@@ -63,16 +74,33 @@ const uiLibraryOptions: UILibraryOption[] = [
   { id: 'ACETERNITY', name: 'Aceternity', description: 'Animated components' },
 ]
 
+const aiModelOptions: AIModelOption[] = [
+  { 
+    id: 'sketch-mini', 
+    name: 'Sketch Mini', 
+    description: 'Fast generation with Gemini',
+    icon: <Zap className="size-4" />
+  },
+  { 
+    id: 'sketch-pro', 
+    name: 'Sketch Pro', 
+    description: 'Advanced generation with Gemma 2',
+    icon: <Sparkles className="size-4" />
+  },
+]
+
 export function PromptInput() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [prompt, setPrompt] = useState('')
   const [deviceType, setDeviceType] = useState<DeviceType>('DESKTOP')
   const [uiLibrary, setUILibrary] = useState<UILibrary>('SHADCN')
+  const [aiModel, setAIModel] = useState<AIModel>('sketch-mini')
   const [isLoading, setIsLoading] = useState(false)
 
   const selectedDevice = deviceOptions.find(d => d.id === deviceType)!
   const selectedLibrary = uiLibraryOptions.find(l => l.id === uiLibrary)!
+  const selectedModel = aiModelOptions.find(m => m.id === aiModel)!
 
   const handleSubmit = async () => {
     if (!prompt.trim() || isLoading) return
@@ -85,6 +113,7 @@ export function PromptInput() {
           prompt: prompt.trim(),
           deviceType,
           uiLibrary,
+          aiModel,
         },
       })
 
@@ -214,6 +243,42 @@ export function PromptInput() {
                       {uiLibrary === library.id && <Check className="size-4 text-primary" />}
                     </div>
                     <span className="text-xs text-muted-foreground">{library.description}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-700 mx-1" />
+
+            {/* AI Model selector */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 gap-1.5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 font-normal"
+                >
+                  {selectedModel.icon}
+                  <span className="hidden sm:inline">{selectedModel.name}</span>
+                  <ChevronDown className="size-3 opacity-60" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuLabel className="text-xs text-muted-foreground">AI Model</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {aiModelOptions.map((model) => (
+                  <DropdownMenuItem
+                    key={model.id}
+                    onClick={() => setAIModel(model.id)}
+                    className="flex-col items-start gap-0.5"
+                  >
+                    <div className="flex items-center gap-2 w-full">
+                      {model.icon}
+                      <span className="flex-1 font-medium">{model.name}</span>
+                      {aiModel === model.id && <Check className="size-4 text-primary" />}
+                    </div>
+                    <span className="text-xs text-muted-foreground pl-6">{model.description}</span>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>

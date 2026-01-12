@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PlaygroundIndexRouteImport } from './routes/playground/index'
 import { Route as PlaygroundPlaygroundIdRouteImport } from './routes/playground/$playgroundId'
 import { Route as ApiInngestRouteImport } from './routes/api/inngest'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
@@ -24,11 +23,6 @@ const AuthRouteRoute = AuthRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PlaygroundIndexRoute = PlaygroundIndexRouteImport.update({
-  id: '/playground/',
-  path: '/playground/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlaygroundPlaygroundIdRoute = PlaygroundPlaygroundIdRouteImport.update({
@@ -57,7 +51,6 @@ export interface FileRoutesByFullPath {
   '/login': typeof AuthLoginRoute
   '/api/inngest': typeof ApiInngestRoute
   '/playground/$playgroundId': typeof PlaygroundPlaygroundIdRoute
-  '/playground': typeof PlaygroundIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
@@ -65,7 +58,6 @@ export interface FileRoutesByTo {
   '/login': typeof AuthLoginRoute
   '/api/inngest': typeof ApiInngestRoute
   '/playground/$playgroundId': typeof PlaygroundPlaygroundIdRoute
-  '/playground': typeof PlaygroundIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
@@ -75,7 +67,6 @@ export interface FileRoutesById {
   '/_auth/login': typeof AuthLoginRoute
   '/api/inngest': typeof ApiInngestRoute
   '/playground/$playgroundId': typeof PlaygroundPlaygroundIdRoute
-  '/playground/': typeof PlaygroundIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
@@ -85,7 +76,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/api/inngest'
     | '/playground/$playgroundId'
-    | '/playground'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -93,7 +83,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/api/inngest'
     | '/playground/$playgroundId'
-    | '/playground'
     | '/api/auth/$'
   id:
     | '__root__'
@@ -102,7 +91,6 @@ export interface FileRouteTypes {
     | '/_auth/login'
     | '/api/inngest'
     | '/playground/$playgroundId'
-    | '/playground/'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
@@ -111,7 +99,6 @@ export interface RootRouteChildren {
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   ApiInngestRoute: typeof ApiInngestRoute
   PlaygroundPlaygroundIdRoute: typeof PlaygroundPlaygroundIdRoute
-  PlaygroundIndexRoute: typeof PlaygroundIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -129,13 +116,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/playground/': {
-      id: '/playground/'
-      path: '/playground'
-      fullPath: '/playground'
-      preLoaderRoute: typeof PlaygroundIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/playground/$playgroundId': {
@@ -186,7 +166,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRouteRoute: AuthRouteRouteWithChildren,
   ApiInngestRoute: ApiInngestRoute,
   PlaygroundPlaygroundIdRoute: PlaygroundPlaygroundIdRoute,
-  PlaygroundIndexRoute: PlaygroundIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

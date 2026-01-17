@@ -53,7 +53,7 @@ export const createMockup = createServerFn({ method: "POST" })
   .inputValidator((data: CreateMockupInput) => data)
   .handler(async ({ data }): Promise<CreateMockupResult> => {
     try {
-      // Get current user session
+     
       const headers = getRequestHeaders();
       const session = await auth.api.getSession({ headers });
 
@@ -66,7 +66,7 @@ export const createMockup = createServerFn({ method: "POST" })
 
       const userId = session.user.id;
 
-      // Check if user can generate (rate limiting)
+   
       const { canGenerate, reason } = await canUserGenerate();
       if (!canGenerate) {
         return {
@@ -77,7 +77,7 @@ export const createMockup = createServerFn({ method: "POST" })
 
       const { prompt, deviceType, uiLibrary, aiModel, projectName } = data;
 
-      // Create a new project for this mockup
+     
       const project = await prisma.project.create({
         data: {
           name: projectName || `Project ${new Date().toLocaleDateString()}`,

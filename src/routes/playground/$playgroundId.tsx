@@ -34,15 +34,14 @@ function PlaygroundPage() {
     },
   });
 
-  // Handler for when an edit is triggered - start polling
+  
   const handleEditComplete = () => {
-    // Start polling for updates by invalidating the query
-    // The edit is processed in the background, so we poll to get the updated code
+   
     const pollInterval = setInterval(async () => {
       await queryClient.invalidateQueries({ queryKey: ["mockup", playgroundId] });
     }, 2000);
 
-    // Stop polling after 30 seconds
+  
     setTimeout(() => {
       clearInterval(pollInterval);
     }, 30000);
@@ -75,7 +74,7 @@ function PlaygroundPage() {
     );
   }
 
-  // Pending/Generating state
+
   if (mockup.status === "PENDING" || mockup.status === "GENERATING") {
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center bg-background">

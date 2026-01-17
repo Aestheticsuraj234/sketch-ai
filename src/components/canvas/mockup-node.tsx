@@ -139,9 +139,9 @@ export const MockupNode = memo(function MockupNode({ data, selected }: MockupNod
             "dark:shadow-[0_0_0_1px_rgba(255,255,255,0.08),0_8px_32px_rgba(0,0,0,0.5)]",
             selected && "ring-[6px] ring-blue-500 ring-offset-[6px] ring-offset-zinc-100 dark:ring-offset-zinc-950"
           )}
-          style={{ 
-            width: `${dimensions.width}px`, 
-            height: `${dimensions.height}px` 
+          style={{
+            width: `${dimensions.width}px`,
+            height: `${dimensions.height}px`
           }}
         >
           {/* Iframe */}

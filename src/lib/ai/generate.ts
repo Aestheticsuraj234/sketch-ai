@@ -168,7 +168,7 @@ export async function generateUIVariations(input: GenerationInput): Promise<Vari
       system: systemPrompt,
       prompt: userPrompt,
       temperature: 0.8, // Slightly higher for more variation
-      maxTokens: 16000, // Need more tokens for 3 variations
+     
     });
     
     const variations = extractVariationsFromResponse(result.text);
@@ -229,7 +229,7 @@ export async function editUICode(input: EditInput): Promise<GenerationResult> {
       system: systemPrompt,
       prompt: userPrompt,
       temperature: 0.5, // Lower temperature for more precise edits
-      maxTokens: 8000,
+   
     });
     
     const extractedCode = extractCodeFromResponse(result.text);

@@ -44,17 +44,17 @@ export function UserMenu({ session }: UserMenuProps) {
   const navigate = useNavigate()  
   const [isPending, setIsPending] = useState(false)
 
-  // Fetch user credits
+ 
   const { data: credits } = useQuery({
     queryKey: ["user-credits"],
     queryFn: () => getUserCredits(),
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 30000, 
   })
 
   const isPro = credits?.plan === "pro"
   
   const logout = async () => {
-    // Prevent multi-click re-entry
+ 
     if (isPending) {
       return
     }
@@ -75,13 +75,11 @@ export function UserMenu({ session }: UserMenuProps) {
         }
       })
     } catch (error) {
-      // Handle any exceptions that occur before callbacks
+   
       toast.error("Failed to logout. Please try again.")
       setIsPending(false)
     } finally {
-      // Ensure isPending is reset even if navigation happens
-      // Note: We don't reset here if onSuccess navigates, as component will unmount
-      // But we reset in onError and catch to handle errors
+   
     }
   }
 

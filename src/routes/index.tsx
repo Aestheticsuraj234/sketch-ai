@@ -28,6 +28,7 @@ function RouteComponent() {
           <PromptInputSkeleton />
         ) : isAuthenticated ? (
           <>
+          {/* TODO: ADD PRE FRAMED COMMENTS */}
             <PromptInput />
             <div className="mt-6">
               <QuickActions />

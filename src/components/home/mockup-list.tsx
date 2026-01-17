@@ -3,10 +3,9 @@ import { Layers, Loader2, RefreshCw } from 'lucide-react'
 import { MockupCard } from './mockup-card'
 import { getUserMockups } from '@/server/mockup'
 
-// Query key for mockups - export so we can invalidate from other components
 export const mockupsQueryKey = ['mockups', 'list'] as const
 
-// Polling interval when there are pending/generating mockups (3 seconds)
+
 const POLLING_INTERVAL = 3000
 
 export function MockupList() {

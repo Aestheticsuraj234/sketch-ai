@@ -10,7 +10,7 @@
     }
   },
   "git": true,
-  "version": 1,
+  "version": 2,
   "framework": "react-cra",
   "chosenAddOns": [
     "eslint",

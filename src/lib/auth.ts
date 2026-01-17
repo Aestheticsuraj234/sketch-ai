@@ -22,7 +22,6 @@ export const auth = betterAuth({
     },
   },
   plugins: [
-    tanstackStartCookies(),
     polar({
       client: polarClient,
       createCustomerOnSignUp: true,
@@ -41,6 +40,7 @@ export const auth = betterAuth({
         portal(),
       ],
     }),
+    tanstackStartCookies(),
   ],
 });
 
